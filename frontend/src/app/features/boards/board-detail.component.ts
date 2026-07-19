@@ -27,69 +27,73 @@ import { ActivityLogComponent } from '../../shared/components/activity-log.compo
     ActivityLogComponent
   ],
   template: `
-    <div class="board-container" *ngIf="board">
-      <div class="list-card" *ngFor="let list of board.lists; let li = index"
-           cdkDropList
-           cdkDropListOrientation="vertical"
-           [cdkDropListData]="list.cards"
-           (cdkDropListDropped)="onCardDrop($event, list)"
-           [id]="'list-' + list.id">
+    <div class="board-container" *ngIf="board" cdkDropListGroup>
+      <div class="lists-scroll" cdkDropList cdkDropListOrientation="horizontal"
+           [cdkDropListData]="board.lists"
+           [cdkDropListEnterPredicate]="listEnterPredicate"
+           (cdkDropListDropped)="onListDrop($event)">
+        <div *ngFor="let list of board.lists" cdkDrag>
+          <div class="list-card">
+            <div class="list-header">
+              <h3>{{ list.title }}</h3>
+              <button mat-icon-button [matMenuTriggerFor]="menu" style="width:28px;height:28px;line-height:28px">
+                <mat-icon style="font-size:16px">more_horiz</mat-icon>
+              </button>
+              <mat-menu #menu="matMenu">
+                <button mat-menu-item (click)="editList(list)"><mat-icon>edit</mat-icon> Rename</button>
+                <button mat-menu-item (click)="deleteList(list.id)" style="color:#d32f2f">
+                  <mat-icon style="color:#d32f2f">delete</mat-icon> Delete
+                </button>
+              </mat-menu>
+            </div>
 
-        <div class="list-header">
-          <h3>{{ list.title }}</h3>
-          <button mat-icon-button [matMenuTriggerFor]="menu" style="width:28px;height:28px;line-height:28px">
-            <mat-icon style="font-size:16px">more_horiz</mat-icon>
-          </button>
-          <mat-menu #menu="matMenu">
-            <button mat-menu-item (click)="editList(list)"><mat-icon>edit</mat-icon> Rename</button>
-            <button mat-menu-item (click)="deleteList(list.id)" style="color:#d32f2f">
-              <mat-icon style="color:#d32f2f">delete</mat-icon> Delete
+            <div class="cards-container" cdkDropList cdkDropListOrientation="vertical"
+                 [cdkDropListData]="list.cards"
+                 (cdkDropListDropped)="onCardDrop($event, list)"
+                 [id]="'list-' + list.id">
+              <div class="card-item" *ngFor="let card of list.cards" cdkDrag
+                   (click)="openCard(card)">
+                <div class="labels-row" *ngIf="card.labels?.length">
+                  <span class="label-dot" *ngFor="let lbl of card.labels" [style.background]="lbl.color">
+                    {{ lbl.name }}
+                  </span>
+                </div>
+                <div class="card-title">{{ card.title }}</div>
+                <div class="card-meta">
+                  <span class="due-date" *ngIf="card.dueDate">
+                    <mat-icon style="font-size:14px;width:14px;height:14px">calendar_today</mat-icon>
+                    {{ card.dueDate | date:'MMM d' }}
+                  </span>
+                  <span *ngIf="card.assignee" style="display:flex;align-items:center;gap:4px">
+                    <mat-icon style="font-size:14px;width:14px;height:14px">person</mat-icon>
+                    {{ card.assignee.name }}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <button mat-button style="width:100%;justify-content:flex-start;margin-top:4px;font-size:13px;color:#626f86"
+                    (click)="addCard(list)">
+              <mat-icon style="font-size:18px;width:18px;height:18px">add</mat-icon> Add card
             </button>
-          </mat-menu>
-        </div>
-
-        <div class="cards-container" cdkDropList>
-          <div class="card-item" *ngFor="let card of list.cards" cdkDrag
-               (click)="openCard(card)">
-            <div class="labels-row" *ngIf="card.labels?.length">
-              <span class="label-dot" *ngFor="let lbl of card.labels" [style.background]="lbl.color">
-                {{ lbl.name }}
-              </span>
-            </div>
-            <div class="card-title">{{ card.title }}</div>
-            <div class="card-meta">
-              <span class="due-date" *ngIf="card.dueDate">
-                <mat-icon style="font-size:14px;width:14px;height:14px">calendar_today</mat-icon>
-                {{ card.dueDate | date:'MMM d' }}
-              </span>
-              <span *ngIf="card.assignee" style="display:flex;align-items:center;gap:4px">
-                <mat-icon style="font-size:14px;width:14px;height:14px">person</mat-icon>
-                {{ card.assignee.name }}
-              </span>
-            </div>
           </div>
         </div>
 
-        <button mat-button style="width:100%;justify-content:flex-start;margin-top:4px;font-size:13px;color:#626f86"
-                (click)="addCard(list)">
-          <mat-icon style="font-size:18px;width:18px;height:18px">add</mat-icon> Add card
-        </button>
-      </div>
-
-      <div class="list-card" style="background:transparent;box-shadow:none;min-width:200px">
-        <div *ngIf="!showNewList">
-          <button mat-stroked-button style="width:100%;background:rgba(0,0,0,0.05);border:none;padding:12px;border-radius:12px;color:#172b4d"
-                  (click)="showNewList = true">
-            <mat-icon style="font-size:18px;width:18px;height:18px">add</mat-icon> Add list
-          </button>
-        </div>
-        <div *ngIf="showNewList" class="list-card" style="padding:8px">
-          <mat-form-field appearance="outline" style="width:100%;margin-bottom:8px">
-            <input matInput [(ngModel)]="newListTitle" placeholder="List title" (keydown.enter)="createList()">
-          </mat-form-field>
-          <div style="display:flex;gap:8px">
-            <button mat-flat-button color="primary" (click)="createList()" [disabled]="!newListTitle">Add</button>
-            <button mat-stroked-button (click)="showNewList = false; newListTitle = ''">Cancel</button>
+        <div class="list-card" style="background:transparent;box-shadow:none;min-width:200px">
+          <div *ngIf="!showNewList">
+            <button mat-stroked-button style="width:100%;background:rgba(0,0,0,0.05);border:none;padding:12px;border-radius:12px;color:#172b4d"
+                    (click)="showNewList = true">
+              <mat-icon style="font-size:18px;width:18px;height:18px">add</mat-icon> Add list
+            </button>
+          </div>
+          <div *ngIf="showNewList" class="list-card" style="padding:8px">
+            <mat-form-field appearance="outline" style="width:100%;margin-bottom:8px">
+              <input matInput [(ngModel)]="newListTitle" placeholder="List title" (keydown.enter)="createList()">
+            </mat-form-field>
+            <div style="display:flex;gap:8px">
+              <button mat-flat-button color="primary" (click)="createList()" [disabled]="!newListTitle">Add</button>
+              <button mat-stroked-button (click)="showNewList = false; newListTitle = ''">Cancel</button>
+            </div>
           </div>
         </div>
       </div>
@@ -177,6 +181,16 @@ export class BoardDetailComponent implements OnInit {
     dialogRef.afterClosed().subscribe(result => {
       if (result) this.loadBoard();
     });
+  }
+
+  listEnterPredicate(drag: CdkDrag, _drop: CdkDropList): boolean {
+    return drag.dropContainer.orientation === 'horizontal';
+  }
+
+  onListDrop(event: CdkDragDrop<TaskList[]>) {
+    moveItemInArray(this.board!.lists, event.previousIndex, event.currentIndex);
+    const listIds = this.board!.lists.map(l => l.id);
+    this.listService.reorderLists(this.board!.id, listIds).subscribe();
   }
 
   onCardDrop(event: CdkDragDrop<Card[]>, targetList: TaskList) {

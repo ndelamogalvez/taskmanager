@@ -17,8 +17,8 @@ export class ListService {
     return this.http.put<TaskList>(`${this.apiUrl}/lists/${id}`, req);
   }
 
-  reorder(id: number, newPosition: number): Observable<TaskList> {
-    return this.http.patch<TaskList>(`${this.apiUrl}/lists/${id}/reorder`, { newPosition });
+  reorderLists(boardId: number, listIds: number[]): Observable<void> {
+    return this.http.put<void>(`${this.apiUrl}/boards/${boardId}/lists/reorder`, { listIds });
   }
 
   delete(id: number): Observable<void> {
