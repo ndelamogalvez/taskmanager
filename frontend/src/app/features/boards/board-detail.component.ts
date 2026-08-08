@@ -34,7 +34,7 @@ import { ActivityLogComponent } from '../../shared/components/activity-log.compo
            (cdkDropListDropped)="onListDrop($event)">
         <div *ngFor="let list of board.lists" cdkDrag>
           <div class="list-card">
-            <div class="list-header">
+            <div class="list-header" cdkDragHandle>
               <h3>{{ list.title }}</h3>
               <button mat-icon-button [matMenuTriggerFor]="menu" style="width:28px;height:28px;line-height:28px">
                 <mat-icon style="font-size:16px">more_horiz</mat-icon>
@@ -52,6 +52,8 @@ import { ActivityLogComponent } from '../../shared/components/activity-log.compo
                  (cdkDropListDropped)="onCardDrop($event, list)"
                  [id]="'list-' + list.id">
               <div class="card-item" *ngFor="let card of list.cards" cdkDrag
+                   (cdkDragStarted)="cardDragActive = true"
+                   (cdkDragEnded)="cardDragActive = false"
                    (click)="openCard(card)">
                 <div class="labels-row" *ngIf="card.labels?.length">
                   <span class="label-dot" *ngFor="let lbl of card.labels" [style.background]="lbl.color">
@@ -116,6 +118,7 @@ export class BoardDetailComponent implements OnInit {
   showNewList = false;
   newListTitle = '';
   showActivity = false;
+  cardDragActive = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -168,6 +171,7 @@ export class BoardDetailComponent implements OnInit {
   }
 
   openCard(card: Card) {
+    if (this.cardDragActive) return;
     const dialogRef = this.dialog.open(CardDialogComponent, {
       width: '500px',
       data: {
@@ -196,13 +200,21 @@ export class BoardDetailComponent implements OnInit {
   onCardDrop(event: CdkDragDrop<Card[]>, targetList: TaskList) {
     if (event.previousContainer === event.container) {
       moveItemInArray(event.container.data, event.previousIndex, event.currentIndex);
-    } else {
-      const movedCard = event.previousContainer.data[event.previousIndex];
-      const targetListId = targetList.id;
-      this.cardService.move(movedCard.id, { targetListId, newPosition: event.currentIndex }).subscribe({
-        next: () => this.loadBoard(),
-        error: () => this.loadBoard()
-      });
+      return;
     }
+
+    const movedCard = event.previousContainer.data[event.previousIndex];
+    transferArrayItem(
+      event.previousContainer.data,
+      event.container.data,
+      event.previousIndex,
+      event.currentIndex
+    );
+    movedCard.listId = targetList.id;
+
+    this.cardService.move(movedCard.id, { targetListId: targetList.id, newPosition: event.currentIndex }).subscribe({
+      next: () => this.loadBoard(),
+      error: () => this.loadBoard()
+    });
   }
 }

@@ -27,6 +27,12 @@
           },
           "configurations": {
             "production": {
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.prod.ts"
+                }
+              ],
               "budgets": [
                 { "type": "initial", "maximumWarning": "600kb", "maximumError": "1mb" }
               ],
@@ -42,6 +48,9 @@
         },
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
+          "options": {
+            "proxyConfig": "proxy.conf.json"
+          },
           "configurations": {
             "production": { "buildTarget": "taskmanager-frontend:build:production" },
             "development": { "buildTarget": "taskmanager-frontend:build:development" }

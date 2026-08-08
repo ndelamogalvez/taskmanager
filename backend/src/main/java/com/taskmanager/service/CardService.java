@@ -2,6 +2,7 @@ package com.taskmanager.service;
 
 import com.taskmanager.dto.request.CardRequest;
 import com.taskmanager.dto.request.MoveCardRequest;
+import com.taskmanager.dto.request.ReorderCardsRequest;
 import com.taskmanager.dto.response.CardResponse;
 import com.taskmanager.dto.response.LabelResponse;
 import com.taskmanager.dto.response.UserSummaryResponse;
@@ -12,6 +13,7 @@ import com.taskmanager.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
@@ -100,6 +102,23 @@ public class CardService {
         activityLogService.log(card.getTaskList().getBoard(), findUser(userId), "updated_card", "CARD", cardId,
                 "Updated card \"" + card.getTitle() + "\"");
         return toResponse(card);
+    }
+
+    @Transactional
+    public void reorderCards(Long listId, ReorderCardsRequest request, Long userId) {
+        TaskList list = findList(listId);
+        validateMember(list.getBoard(), userId);
+
+        List<Card> cards = cardRepository.findByTaskListIdOrderByPositionAsc(listId);
+        for (int i = 0; i < request.getCardIds().size(); i++) {
+            Long cardId = request.getCardIds().get(i);
+            Card card = cards.stream()
+                    .filter(c -> c.getId().equals(cardId))
+                    .findFirst()
+                    .orElseThrow(() -> new ResourceNotFoundException("Card not found with id: " + cardId));
+            card.setPosition(i);
+            cardRepository.save(card);
+        }
     }
 
     @Transactional

@@ -1,5 +1,6 @@
 package com.taskmanager.controller;
 
+import com.taskmanager.dto.request.AddMemberRequest;
 import com.taskmanager.dto.request.BoardRequest;
 import com.taskmanager.dto.response.BoardResponse;
 import com.taskmanager.dto.response.BoardSummaryResponse;
@@ -51,8 +52,8 @@ public class BoardController {
 
     @PostMapping("/{id}/members")
     public ResponseEntity<BoardResponse> addMember(@PathVariable Long id,
-                                                   @RequestBody String email,
+                                                   @Valid @RequestBody AddMemberRequest request,
                                                    @AuthenticationPrincipal User user) {
-        return ResponseEntity.ok(boardService.addMember(id, email.replace("\"", ""), user.getId()));
+        return ResponseEntity.ok(boardService.addMember(id, request.getEmail(), user.getId()));
     }
 }

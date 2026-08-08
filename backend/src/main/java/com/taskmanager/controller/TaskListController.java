@@ -1,5 +1,6 @@
 package com.taskmanager.controller;
 
+import com.taskmanager.dto.request.BulkReorderRequest;
 import com.taskmanager.dto.request.ReorderListRequest;
 import com.taskmanager.dto.request.TaskListRequest;
 import com.taskmanager.dto.response.TaskListResponse;
@@ -32,6 +33,14 @@ public class TaskListController {
                                                        @Valid @RequestBody TaskListRequest request,
                                                        @AuthenticationPrincipal User user) {
         return ResponseEntity.ok(taskListService.updateList(id, request, user.getId()));
+    }
+
+    @PutMapping("/boards/{boardId}/lists/reorder")
+    public ResponseEntity<Void> reorderLists(@PathVariable Long boardId,
+                                             @Valid @RequestBody BulkReorderRequest request,
+                                             @AuthenticationPrincipal User user) {
+        taskListService.reorderLists(boardId, request, user.getId());
+        return ResponseEntity.noContent().build();
     }
 
     @PatchMapping("/lists/{id}/reorder")

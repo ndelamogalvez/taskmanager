@@ -4,8 +4,6 @@ services:
     container_name: taskmanager-db
     restart: unless-stopped
     env_file: .env
-    ports:
-      - "3308:3306"
     volumes:
       - mysql_data:/var/lib/mysql
     healthcheck:
@@ -26,8 +24,7 @@ services:
     environment:
       MYSQL_HOST: mysql
       MYSQL_PORT: 3306
-    ports:
-      - "8085:8080"
+      SPRING_PROFILES_ACTIVE: prod
 
   frontend:
     build:
@@ -38,21 +35,7 @@ services:
     depends_on:
       - backend
     ports:
-      - "4200:80"
-
-  phpmyadmin:
-    profiles: ["dev"]
-    image: phpmyadmin/phpmyadmin
-    container_name: taskmanager-pma
-    restart: unless-stopped
-    depends_on:
-      - mysql
-    environment:
-      PMA_HOST: mysql
-      PMA_PORT: 3306
-      UPLOAD_LIMIT: 100M
-    ports:
-      - "8082:80"
+      - "80:80"
 
 volumes:
   mysql_data:

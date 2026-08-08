@@ -2,6 +2,7 @@ package com.taskmanager.controller;
 
 import com.taskmanager.dto.request.CardRequest;
 import com.taskmanager.dto.request.MoveCardRequest;
+import com.taskmanager.dto.request.ReorderCardsRequest;
 import com.taskmanager.dto.response.CardResponse;
 import com.taskmanager.model.User;
 import com.taskmanager.service.CardService;
@@ -32,6 +33,14 @@ public class CardController {
                                                    @Valid @RequestBody CardRequest request,
                                                    @AuthenticationPrincipal User user) {
         return ResponseEntity.ok(cardService.updateCard(id, request, user.getId()));
+    }
+
+    @PutMapping("/lists/{listId}/cards/reorder")
+    public ResponseEntity<Void> reorderCards(@PathVariable Long listId,
+                                             @Valid @RequestBody ReorderCardsRequest request,
+                                             @AuthenticationPrincipal User user) {
+        cardService.reorderCards(listId, request, user.getId());
+        return ResponseEntity.noContent().build();
     }
 
     @PatchMapping("/cards/{id}/move")

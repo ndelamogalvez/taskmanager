@@ -46,7 +46,14 @@ a { text-decoration: none; color: inherit; }
   justify-content: space-between;
   align-items: center;
   padding: 4px 8px 12px;
+  cursor: grab;
   h3 { font-size: 14px; font-weight: 600; }
+}
+
+.lists-scroll .cdk-drag-dragging {
+  cursor: grabbing;
+  opacity: 0.8;
+  .list-header { cursor: grabbing; }
 }
 
 .cards-container {

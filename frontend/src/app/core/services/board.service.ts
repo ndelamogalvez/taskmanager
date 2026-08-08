@@ -1,11 +1,12 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
 import { Board, BoardRequest, BoardSummary } from '../models/board.model';
 
 @Injectable({ providedIn: 'root' })
 export class BoardService {
-  private apiUrl = 'http://localhost:8085/api/boards';
+  private apiUrl = `${environment.apiUrl}/boards`;
 
   constructor(private http: HttpClient) {}
 
@@ -30,6 +31,6 @@ export class BoardService {
   }
 
   addMember(id: number, email: string): Observable<Board> {
-    return this.http.post<Board>(`${this.apiUrl}/${id}/members`, JSON.stringify(email));
+    return this.http.post<Board>(`${this.apiUrl}/${id}/members`, { email });
   }
 }

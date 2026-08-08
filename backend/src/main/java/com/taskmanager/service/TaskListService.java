@@ -1,5 +1,6 @@
 package com.taskmanager.service;
 
+import com.taskmanager.dto.request.BulkReorderRequest;
 import com.taskmanager.dto.request.ReorderListRequest;
 import com.taskmanager.dto.request.TaskListRequest;
 import com.taskmanager.dto.response.TaskListResponse;
@@ -56,6 +57,26 @@ public class TaskListService {
         activityLogService.log(list.getBoard(), findUser(userId), "updated_list", "LIST", listId,
                 "Updated list to \"" + list.getTitle() + "\"");
         return toResponse(list);
+    }
+
+    @Transactional
+    public void reorderLists(Long boardId, BulkReorderRequest request, Long userId) {
+        Board board = findBoard(boardId);
+        validateMember(board, userId);
+
+        List<TaskList> lists = taskListRepository.findByBoardIdOrderByPositionAsc(boardId);
+        for (int i = 0; i < request.getListIds().size(); i++) {
+            Long listId = request.getListIds().get(i);
+            TaskList list = lists.stream()
+                    .filter(l -> l.getId().equals(listId))
+                    .findFirst()
+                    .orElseThrow(() -> new ResourceNotFoundException("List not found with id: " + listId));
+            list.setPosition(i);
+            taskListRepository.save(list);
+        }
+
+        activityLogService.log(board, findUser(userId), "reordered_lists", "BOARD", boardId,
+                "Reordered lists on board \"" + board.getTitle() + "\"");
     }
 
     @Transactional

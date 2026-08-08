@@ -1,11 +1,12 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
 import { Card, CardRequest, MoveCardRequest } from '../models/card.model';
 
 @Injectable({ providedIn: 'root' })
 export class CardService {
-  private apiUrl = 'http://localhost:8085/api';
+  private apiUrl = environment.apiUrl;
 
   constructor(private http: HttpClient) {}
 
@@ -19,6 +20,10 @@ export class CardService {
 
   move(id: number, req: MoveCardRequest): Observable<Card> {
     return this.http.patch<Card>(`${this.apiUrl}/cards/${id}/move`, req);
+  }
+
+  reorderCards(listId: number, cardIds: number[]): Observable<void> {
+    return this.http.put<void>(`${this.apiUrl}/lists/${listId}/cards/reorder`, { cardIds });
   }
 
   delete(id: number): Observable<void> {
